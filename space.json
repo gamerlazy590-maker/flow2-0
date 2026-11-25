@@ -1,0 +1,8 @@
+{
+  "runtime": "typescript",
+  "platformVersion": 31,
+  "entry": "client/dist/index.html",
+  "name": "Flow 2.0 — AI Image & Video Generator",
+  "slug": "ai-image-video-generator",
+  "managedCronJobs": []
+}

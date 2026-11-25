@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
+@import "tailwindcss";
+@import "tailwindcss-safe-area";
+
+@theme {
+  --text-xs: 12px;
+  --text-xs--line-height: 16px;
+  --text-sm: 14px;
+  --text-sm--line-height: 20px;
+  --text-base: 16px;
+  --text-base--line-height: 24px;
+  --text-lg: 18px;
+  --text-lg--line-height: 28px;
+  --text-xl: 20px;
+  --text-xl--line-height: 28px;
+  --text-2xl: 24px;
+  --text-2xl--line-height: 32px;
+  --text-3xl: 30px;
+  --text-3xl--line-height: 36px;
+  --text-4xl: 36px;
+  --text-4xl--line-height: 40px;
+  --text-5xl: 48px;
+  --text-5xl--line-height: 52px;
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0f;
+  --surface: #12121c;
+  --surface-2: #171726;
+  --text: #f4f4f8;
+  --dim: #9ca3af;
+  --border: #26263a;
+  --accent: #8b5cf6;
+  --accent-2: #22d3ee;
+  --radius: 14px;
+  --space-surface: var(--surface);
+  --space-surface-alt: var(--surface-2);
+  --space-muted: var(--dim);
+  --space-border: var(--border);
+  --space-accent: var(--accent);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.font-display {
+  font-family: "Sora", system-ui, sans-serif;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.grad-text {
+  background: linear-gradient(92deg, #a78bfa, #60a5fa 55%, #22d3ee);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.grad-bg {
+  background: linear-gradient(92deg, #8b5cf6, #3b82f6 55%, #22d3ee);
+}
+
+.grad-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(120deg, rgba(139, 92, 246, 0.65), rgba(34, 211, 238, 0.65)) border-box;
+}
+
+.btn-glow {
+  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.45), 0 8px 32px rgba(99, 102, 241, 0.35);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+.btn-glow:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.5), 0 12px 40px rgba(59, 130, 246, 0.45);
+}
+
+.card-hover {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(139, 92, 246, 0.55);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5), 0 0 24px rgba(139, 92, 246, 0.18);
+}
+
+/* Ken Burns motion previews for video tiles */
+@keyframes kb-zoom-in {
+  from { transform: scale(1.02) translate(0, 0); }
+  to { transform: scale(1.18) translate(-1.5%, -1.5%); }
+}
+@keyframes kb-zoom-out {
+  from { transform: scale(1.18) translate(-1.5%, -1.5%); }
+  to { transform: scale(1.02) translate(0, 0); }
+}
+@keyframes kb-pan-left {
+  from { transform: scale(1.15) translate(2.5%, 0); }
+  to { transform: scale(1.15) translate(-2.5%, 0); }
+}
+@keyframes kb-pan-right {
+  from { transform: scale(1.15) translate(-2.5%, 0); }
+  to { transform: scale(1.15) translate(2.5%, 0); }
+}
+.kb { animation-duration: 7s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; will-change: transform; }
+.kb-zoom-in { animation-name: kb-zoom-in; }
+.kb-zoom-out { animation-name: kb-zoom-out; }
+.kb-pan-left { animation-name: kb-pan-left; }
+.kb-pan-right { animation-name: kb-pan-right; }
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.float-slow { animation: float-slow 7s ease-in-out infinite; }
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  background: linear-gradient(110deg, rgba(255,255,255,0.04) 40%, rgba(139,92,246,0.22) 50%, rgba(255,255,255,0.04) 60%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in { animation: rise-in 0.55s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .kb, .float-slow, .shimmer, .rise-in { animation: none; }
+}
+
+/* Phone tap targets: at least 32px tall. */
+@layer base {
+  button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) {
+    min-height: 2rem;
+  }
+}

@@ -1,0 +1,17 @@
+# Dependencies (rebuild with `bun install`)
+node_modules/
+
+# Build outputs (rebuild with `bun run build`)
+client/dist/
+server/dist/
+.space-build/
+
+# Local app data — never commit accounts or user media
+app.db
+app.db-shm
+app.db-wal
+blobs/
+
+# Environment / OS
+.env*
+.DS_Store
