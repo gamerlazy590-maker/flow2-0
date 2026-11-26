@@ -1,0 +1,39 @@
+name: Extract project ZIP
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace repo contents with ZIP contents
+        run: |
+          set -e
+          test -f flow2-0-vercel.zip
+          find . -mindepth 1 -maxdepth 1 ! -name '.git' ! -name 'flow2-0-vercel.zip' -exec rm -rf {} +
+          unzip -o flow2-0-vercel.zip
+          if [ ! -f package.json ]; then
+            for d in */; do
+              if [ -f "$d/package.json" ]; then
+                shopt -s dotglob
+                mv "$d"* .
+                rmdir "$d"
+                break
+              fi
+            done
+          fi
+          rm -f flow2-0-vercel.zip
+          test -f package.json
+          echo "--- package.json ---"
+          cat package.json
+          echo "--- files ---"
+          find . -path ./.git -prune -o -type f -print | sort
+      - name: Commit extracted files
+        run: |
+          git config user.name "gamerlazy590-maker"
+          git config user.email "gamerlazy590@gmail.com"
+          git add -A
+          git commit -m "Replace with Flow 2.0 Vercel-compatible build (Vite + React)"
+          git push
