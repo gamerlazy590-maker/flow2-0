@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap');
 @import "tailwindcss";
-@import "tailwindcss-safe-area";
 
 @theme {
   --text-xs: 12px;
@@ -34,11 +33,6 @@
   --accent: #8b5cf6;
   --accent-2: #22d3ee;
   --radius: 14px;
-  --space-surface: var(--surface);
-  --space-surface-alt: var(--surface-2);
-  --space-muted: var(--dim);
-  --space-border: var(--border);
-  --space-accent: var(--accent);
 }
 
 body {
