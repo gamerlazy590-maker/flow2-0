@@ -8,7 +8,7 @@ Flow 2.0 is a free AI image & video generator web app:
 - Accounts with salted-hash passwords, per-user creations library, and an
   admin dashboard for the site owner (the first registered account).
 
-Canonical deployment: **https://flow2-0.vercel.app**
+Canonical deployment: **https://flow2-0-ochre.vercel.app**
 
 > **This is the Vercel-compatible rebuild.** The previous version of Flow 2.0
 > was built for a proprietary runtime and could not deploy on Vercel (its
@@ -70,7 +70,7 @@ later updates, plain `git push` is enough.)
    and click **Import**. (If it isn't listed, click "Adjust GitHub App
    Permissions" and grant Vercel access to the repo.)
 3. **Project Name:** `flow2-0` — this is what gives you the
-   `flow2-0.vercel.app` subdomain. (The project already exists in the
+   `flow2-0-ochre.vercel.app` subdomain. (The project already exists in the
    team `gamerlazy590-1274`; importing the updated repo triggers a fresh
    deployment automatically.)
 4. **Framework Preset:** leave as detected / "Other". `vercel.json` already
@@ -87,18 +87,18 @@ later updates, plain `git push` is enough.)
 ### Step 4 — Deploy
 
 1. Click **Deploy** and wait for the build to finish (about 1–2 minutes).
-2. Vercel shows your live URL: **https://flow2-0.vercel.app**
+2. Vercel shows your live URL: **https://flow2-0-ochre.vercel.app**
 3. Every future `git push` to `main` redeploys automatically.
 
 ### Step 5 — Post-deploy checklist
 
-- Open https://flow2-0.vercel.app and confirm the title reads
+- Open https://flow2-0-ochre.vercel.app and confirm the title reads
   "Flow 2.0 — Free AI Video & Image Generator".
 - **Register the first account** — it automatically becomes the site owner
   and unlocks the `/admin` dashboard (in that browser).
 - Try a text-to-image generation, then a text-to-video generation, and
   confirm the 8-second clip plays and downloads as WebM.
-- Submit `https://flow2-0.vercel.app/sitemap.xml` in
+- Submit `https://flow2-0-ochre.vercel.app/sitemap.xml` in
   [Google Search Console](https://search.google.com/search-console) so the
   site gets indexed.
 

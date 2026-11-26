@@ -35,7 +35,7 @@ type StudioTab = "video" | "image" | "creations" | "profile";
 type LegalKind = "terms" | "privacy" | null;
 type SeoKind = "sitemap" | "robots" | null;
 
-const SITE_URL = "https://flow2-0.vercel.app";
+const SITE_URL = "https://flow2-0-ochre.vercel.app";
 const STYLES: StylePreset[] = ["Cinematic", "Anime", "3D Render", "Realistic"];
 const RATIOS: AspectRatio[] = ["16:9", "9:16", "1:1"];
 const MOTIONS: { id: CameraMotion; label: string }[] = [
@@ -153,7 +153,7 @@ const SHOWCASE: {
 const FAQS = [
   {
     q: "What is Flow 2.0?",
-    a: "Flow 2.0 is a free AI video generator and image creator that runs entirely in your browser at flow2-0.vercel.app. Type a prompt and Flow turns it into an 8-second video clip (5 free a day) or an HD image (unlimited). It is an independent app — a free alternative in the same category as Google Flow, Veo, Sora, Runway, and Kling, without their subscriptions or watermarks. Honest note: videos here are cinematic camera moves over one AI-generated keyframe, not real AI motion — real AI motion video needs a paid API, and this free version does not include one.",
+    a: "Flow 2.0 is a free AI video generator and image creator that runs entirely in your browser at flow2-0-ochre.vercel.app. Type a prompt and Flow turns it into an 8-second video clip (5 free a day) or an HD image (unlimited). It is an independent app — a free alternative in the same category as Google Flow, Veo, Sora, Runway, and Kling, without their subscriptions or watermarks. Honest note: videos here are cinematic camera moves over one AI-generated keyframe, not real AI motion — real AI motion video needs a paid API, and this free version does not include one.",
   },
   {
     q: "Is Flow 2.0 really free?",
