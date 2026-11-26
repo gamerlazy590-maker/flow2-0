@@ -22,7 +22,7 @@ import {
   type PublicUser,
   type StylePreset,
 } from "./lib/store";
-import { loadImage, pollinationsUrl } from "./lib/pollinations";
+import { generateImage, getCooldownRemainingMs } from "./lib/pollinations";
 import showcaseCyberpunk from "./assets/showcase-cyberpunk.webp";
 import showcaseAnime from "./assets/showcase-anime.webp";
 import showcaseRender from "./assets/showcase-3drender.webp";
@@ -153,15 +153,15 @@ const SHOWCASE: {
 const FAQS = [
   {
     q: "What is Flow 2.0?",
-    a: "Flow 2.0 is a free AI video generator and image creator that runs entirely in your browser at flow2-0-ochre.vercel.app. Type a prompt and Flow turns it into an 8-second video clip (5 free a day) or an HD image (unlimited). It is an independent app — a free alternative in the same category as Google Flow, Veo, Sora, Runway, and Kling, without their subscriptions or watermarks. Honest note: videos here are cinematic camera moves over one AI-generated keyframe, not real AI motion — real AI motion video needs a paid API, and this free version does not include one.",
+    a: "Flow 2.0 is a free AI video generator and image creator that runs entirely in your browser at flow2-0-ochre.vercel.app. Type a prompt and Flow turns it into an 8-second video clip (5 free a day) or an HD image (free — 1 image per 45 seconds on the free image tier, with no total cap). It is an independent app — a free alternative in the same category as Google Flow, Veo, Sora, Runway, and Kling, without their subscriptions or watermarks. Honest note: videos here are cinematic camera moves over one AI-generated keyframe, not real AI motion — real AI motion video needs a paid API, and this free version does not include one.",
   },
   {
     q: "Is Flow 2.0 really free?",
-    a: "Yes. Every account gets 5 free AI video generations per day and unlimited AI image generations, forever. There is no paid tier and we never ask for a credit card — it's a free AI video maker in the truest sense.",
+    a: "Yes. Every account gets 5 free AI video generations per day and unlimited AI image generations, forever — no total cap on images. One honest limit: the free image service allows 1 image every 45 seconds, so Flow 2.0 waits briefly between generations and retries automatically if the limit is hit, instead of showing you a broken result. There is no paid tier and we never ask for a credit card — it's a free AI video maker in the truest sense.",
   },
   {
     q: "How do the daily video credits work?",
-    a: "Your window starts with your account. You can generate up to 5 videos in any rolling 24-hour window; when the window rolls over, your counter resets to 5/5 automatically. Image generations never consume video credits.",
+    a: "Your window starts with your account. You can generate up to 5 videos in any rolling 24-hour window; when the window rolls over, your counter resets to 5/5 automatically. Image generations never consume video credits, but the free image service allows 1 image every 45 seconds, so back-to-back generations wait briefly.",
   },
   {
     q: "What can I create with Flow 2.0?",
@@ -169,7 +169,7 @@ const FAQS = [
   },
   {
     q: "Is Flow 2.0 a good Google Flow AI alternative — and how does it compare to Veo, Sora, Runway, and Kling?",
-    a: "Flow 2.0 is an independent, free alternative — it is not Google Flow, Veo, Sora, Runway, or Kling, and it isn't affiliated with them. People searching for a Google Flow AI alternative free, a way to use a Google Veo video generator online without a subscription, a Sora AI free alternative, a Runway Gen-3 alternative free, or a Kling AI free alternative online usually want the same things: text to cinematic video, no watermark, and no credit card. That's exactly the gap Flow 2.0 fills — 5 free videos a day and unlimited images, right in the browser.",
+    a: "Flow 2.0 is an independent, free alternative — it is not Google Flow, Veo, Sora, Runway, or Kling, and it isn't affiliated with them. People searching for a Google Flow AI alternative free, a way to use a Google Veo video generator online without a subscription, a Sora AI free alternative, a Runway Gen-3 alternative free, or a Kling AI free alternative online usually want the same things: text to cinematic video, no watermark, and no credit card. That's exactly the gap Flow 2.0 fills — 5 free videos a day and unlimited images (1 every 45 seconds), right in the browser.",
   },
   {
     q: "How do I make AI movies with a consistent face and characters?",
@@ -177,7 +177,7 @@ const FAQS = [
   },
   {
     q: "Can I use Flow 2.0 as an AI video storyboard creator?",
-    a: "Yes — that's a workflow many creators love. Generate unlimited images first as storyboard frames for each shot (they're free), arrange them in My Creations in scene order, then spend your daily video credits only on the shots that matter. It works like an AI video storyboard creator online, without paying for a separate storyboarding tool.",
+    a: "Yes — that's a workflow many creators love. Generate unlimited images first as storyboard frames for each shot (they're free, 1 every 45 seconds), arrange them in My Creations in scene order, then spend your daily video credits only on the shots that matter. It works like an AI video storyboard creator online, without paying for a separate storyboarding tool.",
   },
   {
     q: "Does Flow 2.0 support image to video and scene extension?",
@@ -637,8 +637,8 @@ function Landing({
                 words, and Flow turns that text into a cinematic video — with real camera moves
                 like zooms and pans — or a high-resolution image in styles from photorealistic to
                 anime. Every account gets <strong className="text-white">5 free videos a day</strong>{" "}
-                and <strong className="text-white">unlimited images</strong>, with no credit card
-                and no watermark.
+                and <strong className="text-white">unlimited images</strong> (1 every 45
+                seconds), with no credit card and no watermark.
               </p>
               <p className="mt-3 leading-relaxed text-[var(--dim)]">
                 Creators use Flow as their everyday AI filmmaking tool: storyboarding scenes with
@@ -1034,42 +1034,63 @@ function GeneratorPanel({
   const [ratio, setRatio] = useState<AspectRatio>("16:9");
   const [motion, setMotion] = useState<CameraMotion>("zoom-in");
   const [formError, setFormError] = useState("");
+  const [statusMsg, setStatusMsg] = useState("");
   const [latest, setLatest] = useState<Creation | null>(null);
   const [busy, setBusy] = useState(false);
+  // Free image tier: 1 image per 45 seconds. The countdown is driven by
+  // the persisted last-request timestamp, so a reload cannot bypass it.
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+
+  useEffect(() => {
+    const tick = () => setCooldownLeft(Math.ceil(getCooldownRemainingMs() / 1000));
+    tick();
+    const id = setInterval(tick, 500);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (initialPrompt) setPrompt(initialPrompt);
   }, [initialPrompt]);
 
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleGenerate = async () => {
     setFormError("");
+    setStatusMsg("");
     if (prompt.trim().length < 3) {
       setFormError("Describe what you want to create — at least a few words.");
       return;
     }
     if (kind === "video" && user.videoCreditsRemaining <= 0) {
       setFormError(
-        `You've used all ${DAILY_VIDEO_LIMIT} free video credits for today. Images are still unlimited — or come back when your credits reset.`,
+        `You've used all ${DAILY_VIDEO_LIMIT} free video credits for today. Images are still free (1 per 45 seconds) — or come back when your credits reset.`,
+      );
+      return;
+    }
+    if (cooldownLeft > 0) {
+      setFormError(
+        `Free limit: 1 image per 45 seconds — next try in ${cooldownLeft}s.`,
       );
       return;
     }
     setBusy(true);
     try {
-      // Video credits are consumed before generation, exactly like the old app.
+      // Generate FIRST, and only consume a video credit after a real
+      // image is confirmed. A rate-limit placeholder or a failed request
+      // never costs a credit and never becomes a creation.
+      setStatusMsg("Generating your image…");
+      const { imageUrl } = await generateImage(
+        {
+          prompt,
+          negativePrompt: negEnabled ? negativePrompt : "",
+          style,
+          ratio,
+        },
+        (msg) => setStatusMsg(msg),
+      );
       let freshUser = user;
       if (kind === "video") {
         freshUser = consumeVideoCredit(user.email);
         onUserChange(freshUser);
       }
-      const imageUrl = pollinationsUrl({
-        prompt,
-        negativePrompt: negEnabled ? negativePrompt : "",
-        style,
-        ratio,
-      });
-      // Confirm the remote generator actually returned an image.
-      await loadImage(imageUrl);
       const creation = addCreation({
         ownerEmail: user.email,
         kind,
@@ -1082,11 +1103,18 @@ function GeneratorPanel({
       });
       if (kind === "image") bumpImageCount(user.email);
       setLatest(creation);
+      setStatusMsg("");
     } catch (err) {
+      setStatusMsg("");
       setFormError(err instanceof Error ? err.message : "Generation failed. Please try again.");
     } finally {
       setBusy(false);
     }
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    await handleGenerate();
   };
 
   const outOfCredits = kind === "video" && user.videoCreditsRemaining <= 0;
@@ -1100,7 +1128,7 @@ function GeneratorPanel({
         <p className="mt-1 text-sm text-[var(--dim)]">
           {kind === "video"
             ? `One generation = one daily video credit. You get a real ${VIDEO_DURATION_SECONDS}-second video clip: your AI keyframe animated with your chosen camera move, downloadable as WebM.`
-            : "Images are unlimited and free — they never touch your video credits."}
+            : "Images are free and never touch your video credits — the free image service allows 1 image every 45 seconds, so Flow waits briefly between generations."}
         </p>
 
         <label htmlFor={`prompt-${kind}`} className="mb-1.5 mt-5 block text-sm font-semibold">
@@ -1225,20 +1253,33 @@ function GeneratorPanel({
             {formError}
           </p>
         )}
+        {statusMsg && !formError && (
+          <p role="status" className="mt-4 rounded-lg border border-[var(--border)] bg-white/5 px-3 py-2 text-sm text-[var(--dim)]">
+            {statusMsg}
+          </p>
+        )}
         <button
           type="submit"
-          disabled={busy}
+          disabled={busy || cooldownLeft > 0}
           className="grad-bg btn-glow mt-5 w-full rounded-xl py-3.5 font-display text-base font-bold text-white disabled:opacity-60"
         >
           {busy
             ? "✨ Rendering — this takes a few seconds…"
-            : kind === "video"
-              ? `Generate Video (${user.videoCreditsRemaining}/${user.videoDailyLimit} credits left)`
-              : "Generate Image — Free & Unlimited"}
+            : cooldownLeft > 0
+              ? `Wait ${cooldownLeft}s — free limit: 1 image per 45 seconds`
+              : kind === "video"
+                ? `Generate Video (${user.videoCreditsRemaining}/${user.videoDailyLimit} credits left)`
+                : "Generate Image — Free"}
         </button>
+        {cooldownLeft > 0 && !busy && (
+          <p className="mt-3 text-center text-sm text-[var(--dim)]">
+            Free limit: 1 image per 45 seconds — next try in {cooldownLeft}s. The button
+            unlocks automatically.
+          </p>
+        )}
         {outOfCredits && (
           <p className="mt-3 text-center text-sm text-[var(--dim)]">
-            Video credits reset {formatDateTime(user.creditsResetAt)}. Images stay unlimited in the meantime.
+            Video credits reset {formatDateTime(user.creditsResetAt)}. Images stay free (1 per 45 seconds) in the meantime.
           </p>
         )}
         <p className="mt-4 text-xs leading-relaxed text-[var(--dim)]">
@@ -1287,6 +1328,19 @@ function GeneratorPanel({
             <p className="text-xs text-[var(--dim)]">
               {latest.stylePreset} · {latest.aspectRatio} · saved to My Creations
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                setLatest(null);
+                void handleGenerate();
+              }}
+              disabled={busy || cooldownLeft > 0}
+              className="mt-3 rounded-lg border border-[var(--border)] bg-white/5 px-3 py-1.5 text-sm hover:bg-white/10 disabled:opacity-50"
+            >
+              {cooldownLeft > 0
+                ? `This looks wrong? Retry in ${cooldownLeft}s`
+                : "This looks wrong? Try again"}
+            </button>
           </div>
         ) : (
           <div className="mt-3 flex aspect-video items-center justify-center rounded-xl border border-dashed border-[var(--border)] px-4 text-center text-sm text-[var(--dim)]">
@@ -1550,7 +1604,7 @@ function Studio({
           </div>
           <p className="mt-3 px-2 text-xs leading-relaxed text-[var(--dim)]">
             Videos are 8-second camera moves over an AI keyframe, exported as WebM. Images are
-            unlimited and free.
+            unlimited and free (1 every 45 seconds).
           </p>
         </nav>
 
