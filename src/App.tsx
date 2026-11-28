@@ -1751,9 +1751,10 @@ export default function App() {
   const [user, setUser] = useState<PublicUser | null>(() => getSession());
   const [view, setView] = useState<View>(() => {
     if (typeof window === "undefined") return "landing";
-    return window.location.pathname === "/admin"
+    const path = window.location.pathname.replace(/\/+$/, "") || "/";
+    return path === "/admin"
       ? "admin"
-      : window.location.pathname === "/studio"
+      : path === "/studio"
         ? "studio"
         : "landing";
   });
